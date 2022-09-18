@@ -1,4 +1,4 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+/* // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 // Import the functions you need from the SDKs you need
 import { app } from 'firebase-admin';
 import { initializeApp, applicationDefault, cert, getApps } from 'firebase-admin/app';
@@ -30,3 +30,4 @@ try {
 } catch (e) {
   console.error("Error adding document: ", e);
 }}
+ */

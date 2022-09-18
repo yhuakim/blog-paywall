@@ -6,12 +6,11 @@ import {useEffect, useState} from 'react'
 import DOMPurify from 'isomorphic-dompurify';
 import {marked} from 'marked'
 import { useVisitorData } from '@fingerprintjs/fingerprintjs-pro-react'
-import { initializeApp } from "firebase/app";
-import { getFirestore, setDoc, updateDoc, doc, collection, FieldValue, arrayUnion, getDocs, addDoc } from "firebase/firestore";
+import { db } from "../../components/firedaseHelper";
+import { updateDoc, doc, collection, arrayUnion, getDocs, addDoc } from "firebase/firestore";
 //import axios from 'axios'
 
 const Posts = ({post}) => {
-  //console.log(post)
   const [content, setContent] = useState('')
   const { isLoading, getData } = useVisitorData({ immediate: true })
   const [modal, setModal] = useState(false)
@@ -20,23 +19,11 @@ const Posts = ({post}) => {
     await getData().then(async(visitor) => {
       const visited = {
         visitorId: visitor.visitorId,
-        visitedPostId: post[0]._id
+        visitedPostId: post[0].slug
       }
 
       const {visitorId, visitedPostId} = visited
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyD3fn5vip2WMqo9NZb-k0Suv9pDWCOZJOY",
-        authDomain: "paywall-f2816.firebaseapp.com",
-        projectId: "paywall-f2816",
-        storageBucket: "paywall-f2816.appspot.com",
-        messagingSenderId: "1093369957876",
-        appId: "1:1093369957876:web:015d5bb0b50c6c8f7b7da1"
-      };
-
-      const app = initializeApp(firebaseConfig);
-
-      const db = getFirestore(app);
+      
       const visitorRef = doc(db, 'visitors', `${visitorId}`)
       
       const Visitors = await getDocs(collection(db, 'visitors'))
@@ -56,21 +43,6 @@ const Posts = ({post}) => {
       }
     }
       )
-
-     /*  await setDoc(visitorRef, {
-        visitedPosts: arrayUnion(`${visitedPost}`)
-      }) */
-      
-     /*  const data = JSON.stringify(visited)
-      const config = {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      }
-      const res = await axios.post(`/api/paywall`, data, config)
-      setRef(res.data)
-      console.log(ref); */
-
     })
   }
   
@@ -85,9 +57,7 @@ const Posts = ({post}) => {
   .process(JSON.stringify(post[0].contentMarkdown))
   .then((file) => {
     const res = file.toString('utf-8')
-    //marked(String(file))
     const data = marked.parse(res)
-    //console.log(res)
     setContent(data)
     console.error(reporter(file))
   })
@@ -96,10 +66,7 @@ const Posts = ({post}) => {
   }
     return (
         <div className="">
-          {}
           <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(content)}} />
-            {/* <Markdown value={content} /> */}
-          {/* <button onClick={handleClick}>view content</button> */}
         </div>
     )
 }

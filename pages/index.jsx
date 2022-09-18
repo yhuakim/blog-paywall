@@ -29,7 +29,7 @@ export default function Home({posts}) {
                 <div className="card-body">
                   <h1 className="heading card-title">{post.title}</h1>
                   <p className="card-text">{post.brief}</p>
-                  <a href={`/posts/${post.slug}`} target='_blank' className="btn btn-outline-secondary btn-sm">Read more</a>
+                  <a href={`/posts/${post.slug}`} target='_blank' rel='noreferrer' className="btn btn-outline-secondary btn-sm">Read more</a>
                 </div>
               </div>
             </div>
