@@ -76,7 +76,7 @@ const Posts = ({post}) => {
   
   useEffect(()=> {
     visitedTimes()
-  }, [content])
+  }, [content], visitedTimes)
 
   try {
     remark()
