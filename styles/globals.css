@@ -15,6 +15,38 @@ a {
   box-sizing: border-box;
 }
 
+.main h1,
+.main h3 {
+  text-align: center;
+}
+.feed {
+  margin: auto;
+  display: grid;
+  padding: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+  grid-column-gap: 1rem;
+  grid-row-gap: 2rem;
+  cursor: pointer;
+}
+.post {
+  margin: auto;
+
+  text-align: center;
+  max-width: calc(100vw - 100px);
+}
+.img {
+  margin-top: 25px;
+  width: 500px;
+  max-width: calc(100vw - 50px);
+  transition: 0.2s;
+  border-radius: 5px;
+  box-shadow: 0px 0px 2px black;
+}
+.post:hover .img {
+  width: 490px;
+  transition: 0.2s;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

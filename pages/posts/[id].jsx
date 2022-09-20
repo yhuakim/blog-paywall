@@ -1,19 +1,26 @@
-import {reporter} from 'vfile-reporter'
-import {remark} from 'remark'
-import remarkPresetLintMarkdownStyleGuide from 'remark-preset-lint-markdown-style-guide'
-import remarkHtml from 'remark-html'
-import {useEffect, useState} from 'react'
-import DOMPurify from 'isomorphic-dompurify';
-import {marked} from 'marked'
+import {unified} from 'unified';
+import parse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import atomDark from 'react-syntax-highlighter/dist/cjs/styles/prism/atom-dark'
+import Modal from 'react-bootstrap/Modal';
+import remarkRehype from "remark-rehype";
+import rehypeReact from "rehype-react";
+import React, {useEffect, useState} from 'react'
 import { useVisitorData } from '@fingerprintjs/fingerprintjs-pro-react'
 import { db } from "../../components/firedaseHelper";
 import { updateDoc, doc, collection, arrayUnion, getDocs, addDoc } from "firebase/firestore";
+import ReactMarkdown from 'react-markdown';
+import styles from '../../styles/Post.module.css'
+import Link from 'next/link';
 //import axios from 'axios'
 
 const Posts = ({post}) => {
   const [content, setContent] = useState('')
+  const [visitorId, setVisitorId] = useState()
   const { isLoading, getData } = useVisitorData({ immediate: true })
   const [modal, setModal] = useState(false)
+  const [timesVisited, setTimesVisited] = useState(0)
 
   const visitedTimes = async ()=> {
     await getData().then(async(visitor) => {
@@ -28,11 +35,8 @@ const Posts = ({post}) => {
       
       const Visitors = await getDocs(collection(db, 'visitors'))
       Visitors.forEach(async (visitor) => {
-        if(visitor.data().length > 3) {
-          setModal(true)
-        }
         if(visitorId === visitor.id) {
-          console.log(visitor.data());
+          console.log(visitor.data(), visitor.data().visitedPosts.length);
           updateDoc(visitorRef, {
             visitedPosts: arrayUnion(`${visitedPostId}`)
           })
@@ -41,6 +45,9 @@ const Posts = ({post}) => {
             visitedPosts: arrayUnion(`${visitedPostId}`)
           })
       }
+      if(visitor.data().visitedPosts.length > 3 || visitor.data().visitedPosts.length === 3) {
+        setModal(true)
+      }
     }
       )
     })
@@ -48,26 +55,62 @@ const Posts = ({post}) => {
   
   useEffect(()=> {
     visitedTimes()
-  }, [content], visitedTimes)
-
-  try {
-    remark()
-  .use(remarkPresetLintMarkdownStyleGuide)
-  .use(remarkHtml)
-  .process(JSON.stringify(post[0].contentMarkdown))
-  .then((file) => {
-    const res = file.toString('utf-8')
-    const data = marked.parse(res)
+    const data = unified()
+    .use(parse)
+    .use(remarkRehype)
+    .use(rehypeReact, { createElement: React.createElement })
+    .processSync(post[0].contentMarkdown).toString()
     setContent(data)
-    console.error(reporter(file))
-  })
-  }catch (error){
-    console.error(error);
-  }
+    console.log(data);
+  }, [])
+
     return (
-        <div className="">
-          <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(content)}} />
-        </div>
+      <div className={modal? styles.main: ''}>
+        {modal? 
+         <Modal centered show={modal} onHide={()=> window.location.href("/")} animation={true}>
+         <Modal.Header>
+           <Modal.Title>Modal heading</Modal.Title>
+         </Modal.Header>
+         <Modal.Body>Oops! Seems you have exceeded your allocated free articles. You can get back by subscribing</Modal.Body>
+         <Modal.Footer>
+           <Link role='button' className='btn btn-secondary' href='/'>
+             Go Home
+           </Link>
+           <Link className='btn btn-secondary' href='#'>
+             Pay Now
+           </Link>
+         </Modal.Footer>
+       </Modal>
+        : 
+        <ReactMarkdown remarkPlugins={[remarkGfm]} 
+        components={{
+          code({node, inline, className, children, ...props}) {
+            const match = /language-(\w+)/.exec(className || '')
+            return !inline && match ? (
+              <SyntaxHighlighter
+                children={String(children).replace(/\n$/, '')}
+                language={match[1]}
+                style={atomDark}
+                PreTag="div"
+                {...props}
+              />
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              )
+            },
+            img({children, node, src, className, ...props}) {
+              return(
+                <img src={src} {...props} />
+              )
+            }
+          }}
+          className="container"
+        >{content}
+        </ReactMarkdown>
+        }
+      </div>
     )
 }
 
@@ -118,48 +161,48 @@ export async function getStaticPaths() {
   }
   
   // This also gets called at build time
-  export async function getStaticProps({ params }) {
-    // params contains the post `id`.
-    // If the route is like /posts/1, then params.id is 1
-    async function gql(query, variables={}) {
-        const data = await fetch('https://api.hashnode.com/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query,
-                variables
-            })
-        });
-    
-        return data.json();
-    }
+export async function getStaticProps({ params }) {
+  // params contains the post `id`.
+  // If the route is like /posts/1, then params.id is 1
+  async function gql(query, variables={}) {
+      const data = await fetch('https://api.hashnode.com/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              query,
+              variables
+          })
+      });
   
-    const query = `
-      query {
-        user(username: "yhuakim") {
-          name
-          publication {
-            posts {
-              _id
-              title
-              coverImage
-              slug
-              contentMarkdown
-            }
+      return data.json();
+  }
+
+  const query = `
+    query {
+      user(username: "yhuakim") {
+        name
+        publication {
+          posts {
+            _id
+            title
+            coverImage
+            slug
+            contentMarkdown
           }
         }
       }
-    `
-  
-    const hashnodeData = await gql(query)
-  
-    const {posts} = hashnodeData.data.user.publication
+    }
+  `
 
-    const post = posts.filter((post) => params.id === post.slug)
-  
-    // Pass post data to the page via props
-    return { props: { post } }
-  }
+  const hashnodeData = await gql(query)
+
+  const {posts} = hashnodeData.data.user.publication
+
+  const post = posts.filter((post) => params.id === post.slug)
+
+  // Pass post data to the page via props
+  return { props: { post } }
+}
   
