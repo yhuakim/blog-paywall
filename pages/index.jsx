@@ -35,6 +35,7 @@ export default function Home({posts}) {
                 alt="post thumbnail"
               />
               <h3>{post.title}</h3>
+              <a href={`/posts/${post.slug}`}>Go</a>
             </div>
           ))
         ) : (
