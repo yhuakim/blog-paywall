@@ -1,49 +1,57 @@
 import Head from 'next/head'
-import styles from "../styles/Home.module.css";
+import { useRouter } from 'next/router'
 
-export default function Home({posts}) {
+export default function Home({ posts }) {
+  const router = useRouter()
   return (
     <div className="">
-        <Head>
-          <title>Melvin's Blog</title>
-          <meta name="description" content="A mini blog from yhuakim" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-        <header>
+      <Head>
+        <title>yhuakim's Blog</title>
+        <meta name="description" content="A mini blog from yhuakim" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <header>
         <nav className="navbar bg-light fixed-top">
           <div className="container">
             <a className="navbar-brand" href="#">
               <img src="/logo.svg" alt="Logo" width="30" height="24" className="d-inline-block align-text-top" />
-              Melvin's Blog
+              yhuakim's Blog
             </a>
           </div>
         </nav>
-        </header>
-        <div className={styles.main}>
-      <h1>Welcome to Blog Page</h1>
-      <div className={styles.feed}>
-        {posts.length ? (
-          posts.map((post, index) => (
-            <div
-              key={index}
-              className={styles.post}
-              onClick={() => router.push(`/posts/${post.slug}`)}
-            >
-              <img
-                className={styles.img}
-                src={post.coverImage}
-                alt="post thumbnail"
-              />
-              <h3>{post.title}</h3>
-              <a href={`/posts/${post.slug}`}>Go</a>
-            </div>
-          ))
-        ) : (
-          <>No Posts</>
-        )}
+      </header>
+      <div className="container py">
+        <h1>Welcome to my Blog Page</h1>
+        <div className="row">
+          {posts.length ? (
+            posts.map((post, index) => (
+              <div
+                key={index}
+                className="col-12 g-5"
+                onClick={() => router.push(`/posts/${post.slug}`)}
+              >
+                <div className='row border border-light rounded'>
+                  <div className="p-3 border border-dark-50 col-4">
+                    <img
+                      className="w-100"
+                      src={post.coverImage}
+                      alt="post thumbnail"
+                    />
+                  </div>
+                  <div className='col-8'>
+                    <h3 className='pt-3'>{post.title}</h3>
+                    <p className='text-muted text-truncate'>{post.brief}</p>
+                    <a href={`/posts/${post.slug}`} className="mb-3 text-decoration-none btn btn-outline-secondary btn-sm" >Read more</a>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <>No Posts</>
+          )}
+        </div>
       </div>
     </div>
-      </div>
   )
 }
 
@@ -63,15 +71,15 @@ export async function getStaticProps() {
       }
     }
   `
-  async function gql(query, variables={}) {
+  async function gql(query, variables = {}) {
     const data = await fetch('https://api.hashnode.com/', {
       method: 'POST',
       headers: {
-          'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-          query,
-          variables
+        query,
+        variables
       })
     });
     return data.json();
@@ -79,7 +87,7 @@ export async function getStaticProps() {
 
   const hashnodeData = await gql(query)
 
-  const {posts} = hashnodeData.data.user.publication
+  const { posts } = hashnodeData.data.user.publication
 
   return {
     props: {
