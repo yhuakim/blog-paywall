@@ -100,7 +100,7 @@ const Posts = ({ post }) => {
       .processSync(post[0].contentMarkdown).toString()
     setContent(data)
     console.log(data);
-  }, [])
+  }, [modal, updated])
 
   return (
     <div className={modal ? styles.main : ''}>
@@ -188,20 +188,13 @@ export async function getStaticPaths() {
 
   const { posts } = hashnodeData.data.user.publication
 
-  // Get the paths we want to pre-render based on posts
   const paths = posts.map((post) => ({
     params: { id: post.slug },
   }))
-
-  // We'll pre-render only these paths at build time.
-  // { fallback: false } means other routes should 404.
   return { paths, fallback: false }
 }
 
-// This also gets called at build time
 export async function getStaticProps({ params }) {
-  // params contains the post `id`.
-  // If the route is like /posts/1, then params.id is 1
   async function gql(query, variables = {}) {
     const data = await fetch('https://api.hashnode.com/', {
       method: 'POST',
@@ -240,6 +233,5 @@ export async function getStaticProps({ params }) {
 
   const post = posts.filter((post) => params.id === post.slug)
 
-  // Pass post data to the page via props
   return { props: { post } }
 }
