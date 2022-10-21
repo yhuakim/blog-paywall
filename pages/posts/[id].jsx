@@ -19,7 +19,6 @@ import {
 import ReactMarkdown from 'react-markdown';
 import styles from '../../styles/Post.module.css'
 import Link from 'next/link';
-//import axios from 'axios'
 
 const Posts = ({ post }) => {
   const [content, setContent] = useState('')
@@ -31,34 +30,6 @@ const Posts = ({ post }) => {
   const [visitTimes, setVisitTimes] = useState(0);
 
   const visitedTimes = async () => {
-    /* await getData().then(async(visitor) => {
-      const visited = {
-        visitorId: visitor.visitorId,
-        visitedPostId: post[0].slug
-      }
-
-      const {visitorId, visitedPostId} = visited
-      
-      const visitorRef = doc(db, 'visitors', `${visitorId}`)
-      
-      const Visitors = await getDocs(collection(db, 'visitors'))
-      Visitors.forEach(async (visitor) => {
-        if(visitorId === visitor.id) {
-          console.log(visitor.data(), visitor.data().visitedPosts.length);
-          updateDoc(visitorRef, {
-            visitedPosts: arrayUnion(`${visitedPostId}`)
-          })
-        } else {
-          await addDoc(visitorRef, {
-            visitedPosts: arrayUnion(`${visitedPostId}`)
-          })
-      }
-      if(visitor.data().visitedPosts.length > 3 || visitor.data().visitedPosts.length === 3) {
-        setModal(true)
-      }
-    }
-      )
-    }) */
     await getData().then(async (visitor) => {
       const visited = {
         visitorId: visitor.visitorId,
@@ -66,7 +37,6 @@ const Posts = ({ post }) => {
       };
 
       const { visitorId, visitedPostId } = visited;
-      console.log(visitedPostId, visitorId)
 
       const visitorRef = doc(db, 'visitors', `${visitorId}`)
 
@@ -104,7 +74,7 @@ const Posts = ({ post }) => {
 
   return (
     <div className={modal ? styles.main : ''}>
-      {modal ?
+      {modal && visitTimes ?
         <Modal centered show={modal} onHide={() => window.location.href("/")} animation={true}>
           <Modal.Header>
             <Modal.Title>Modal heading</Modal.Title>
